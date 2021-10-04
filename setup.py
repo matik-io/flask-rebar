@@ -30,7 +30,11 @@ if __name__ == "__main__":
         packages=find_packages(exclude=("test*", "examples")),
         include_package_data=True,
         extras_require={"dev": development},
-        install_requires=["Flask>=1.0,<3", "marshmallow>=3.0,<4"],
+        install_requires=[
+            "Flask>=1.0,<3",
+            "marshmallow>=3.0,<4",
+            "docstring-parser>=0.7.3<1",
+        ],
         url="https://github.com/plangrid/flask-rebar",
         classifiers=[
             "Environment :: Web Environment",

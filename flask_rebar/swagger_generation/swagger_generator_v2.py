@@ -10,6 +10,7 @@
 from __future__ import unicode_literals
 
 import copy
+from docstring_parser import parse
 
 from flask_rebar.swagger_generation import swagger_words as sw
 from flask_rebar.authenticators import USE_DEFAULT
@@ -287,7 +288,15 @@ class SwaggerV2Generator(SwaggerGenerator):
                 }
 
                 if d.func.__doc__:
-                    path_definition[method_lower][sw.description] = d.func.__doc__
+                    docstring = parse(d.func.__doc__)
+                    if docstring.short_description:
+                        path_definition[method_lower][
+                            sw.summary
+                        ] = docstring.short_description
+                    if docstring.long_description:
+                        path_definition[method_lower][
+                            sw.description
+                        ] = docstring.long_description
 
                 if parameters_definition:
                     path_definition[method_lower][sw.parameters] = parameters_definition
