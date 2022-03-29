@@ -27,6 +27,12 @@ from flask_rebar.validation import QueryParamList
 from flask_rebar.validation import CommaSeparatedList
 from flask_rebar.swagger_generation import swagger_words as sw
 
+try:
+    from marshmallow_enum import EnumField, LoadDumpOptions
+except ImportError:
+    EnumField = None
+    LoadDumpOptions = None
+
 
 # Special value to signify that a JSONSchema field should be left unset
 class UNSET(object):
@@ -634,6 +640,32 @@ class ConverterRegistry(object):
         )
 
 
+class EnumConverter(FieldConverter):
+    MARSHMALLOW_TYPE = EnumField
+
+    @sets_swagger_attr(sw.type_)
+    def get_type(self, obj, context):
+        # Note: we don't (yet?) support mix-and-match between load_by and dump_by. Pick one.
+        if obj.by_value or (obj.load_by == obj.dump_by == LoadDumpOptions.value):
+            # I'm going out on a limb and assuming your enum uses same type for all vals, else caveat emptor:
+            value_type = type(next(iter(obj.enum)).value)
+            if value_type is int:
+                return sw.integer
+            elif value_type is float:
+                return sw.number
+            else:
+                return sw.string
+        else:
+            return sw.string
+
+    @sets_swagger_attr(sw.enum)
+    def get_enum(self, obj, context):
+        if obj.by_value or (obj.load_by == obj.dump_by == LoadDumpOptions.value):
+            return [entry.value for entry in obj.enum]
+        else:
+            return [entry.name for entry in obj.enum]
+
+
 ALL_CONVERTERS = tuple(
     [
         klass()
@@ -642,11 +674,11 @@ ALL_CONVERTERS = tuple(
     ]
 )
 
-query_string_converter_registry = ConverterRegistry()
-query_string_converter_registry.register_types(
-    [
+
+def _common_converters():
+    """Instantiates the converters we use in ALL of the registries below"""
+    converters = [
         BooleanConverter(),
-        CsvArrayConverter(),
         DateConverter(),
         DateTimeConverter(),
         FunctionConverter(),
@@ -654,7 +686,6 @@ query_string_converter_registry.register_types(
         LengthConverter(),
         ListConverter(),
         MethodConverter(),
-        MultiArrayConverter(),
         NumberConverter(),
         OneOfConverter(),
         RangeConverter(),
@@ -663,73 +694,28 @@ query_string_converter_registry.register_types(
         UUIDConverter(),
         ConstantConverter(),
     ]
+    if EnumConverter.MARSHMALLOW_TYPE is not None:
+        converters.append(EnumConverter())
+
+    return converters
+
+
+query_string_converter_registry = ConverterRegistry()
+query_string_converter_registry.register_types(
+    _common_converters() + [CsvArrayConverter(), MultiArrayConverter()]
 )
 
 headers_converter_registry = ConverterRegistry()
 headers_converter_registry.register_types(
-    [
-        BooleanConverter(),
-        CsvArrayConverter(),
-        DateConverter(),
-        DateTimeConverter(),
-        FunctionConverter(),
-        IntegerConverter(),
-        LengthConverter(),
-        ListConverter(),
-        MethodConverter(),
-        MultiArrayConverter(),
-        NumberConverter(),
-        OneOfConverter(),
-        RangeConverter(),
-        SchemaConverter(),
-        StringConverter(),
-        UUIDConverter(),
-        ConstantConverter(),
-    ]
+    _common_converters() + [CsvArrayConverter(), MultiArrayConverter()]
 )
 
 request_body_converter_registry = ConverterRegistry()
 request_body_converter_registry.register_types(
-    [
-        BooleanConverter(),
-        DateConverter(),
-        DateTimeConverter(),
-        DictConverter(),
-        FunctionConverter(),
-        IntegerConverter(),
-        LengthConverter(),
-        ListConverter(),
-        MethodConverter(),
-        NestedConverter(),
-        NumberConverter(),
-        OneOfConverter(),
-        RangeConverter(),
-        SchemaConverter(),
-        StringConverter(),
-        UUIDConverter(),
-        ConstantConverter(),
-    ]
+    _common_converters() + [DictConverter(), NestedConverter()]
 )
 
 response_converter_registry = ConverterRegistry()
 response_converter_registry.register_types(
-    [
-        BooleanConverter(),
-        DateConverter(),
-        DateTimeConverter(),
-        DictConverter(),
-        FunctionConverter(),
-        IntegerConverter(),
-        LengthConverter(),
-        ListConverter(),
-        MethodConverter(),
-        NestedConverter(),
-        NumberConverter(),
-        OneOfConverter(),
-        RangeConverter(),
-        SchemaConverter(),
-        StringConverter(),
-        UUIDConverter(),
-        ConstantConverter(),
-    ]
+    _common_converters() + [DictConverter(), NestedConverter()]
 )

@@ -7,19 +7,29 @@
     :copyright: Copyright 2018 PlanGrid, Inc., see AUTHORS.
     :license: MIT, see LICENSE for details.
 """
-import unittest
+import enum
+from unittest import TestCase
 from parametrize import parametrize
 
+
 import marshmallow as m
+import marshmallow_enum as me
 from marshmallow import validate as v
 
 from flask_rebar.swagger_generation.marshmallow_to_swagger import ALL_CONVERTERS
 from flask_rebar.swagger_generation.marshmallow_to_swagger import ConverterRegistry
+
 from flask_rebar.validation import CommaSeparatedList
 from flask_rebar.validation import QueryParamList
 
 
-class TestConverterRegistry(unittest.TestCase):
+class StopLight(enum.Enum):
+    green = 1
+    yellow = 2
+    red = 3
+
+
+class TestConverterRegistry(TestCase):
     def setUp(self):
         self.registry = ConverterRegistry()
         self.registry.register_types(ALL_CONVERTERS)
@@ -42,6 +52,14 @@ class TestConverterRegistry(unittest.TestCase):
             (m.fields.Integer(missing=5), {"type": "integer", "default": 5}),
             (m.fields.Integer(dump_only=True), {"type": "integer", "readOnly": True}),
             (m.fields.Integer(missing=lambda: 5), {"type": "integer"}),
+            (
+                me.EnumField(StopLight),
+                {"enum": ["green", "yellow", "red"], "type": "string"},
+            ),
+            (
+                me.EnumField(StopLight, by_value=True),
+                {"enum": [1, 2, 3], "type": "integer"},
+            ),
             (
                 m.fields.Integer(allow_none=True),
                 {"type": "integer", "x-nullable": True},

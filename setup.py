@@ -9,10 +9,10 @@ development = [
     "gitchangelog>=3.0.4,<4.0.0",
     "jsonschema==3.0.2",
     "marshmallow-objects~=2.3",
-    "mock==2.0.0",
     "parametrize==0.1.1",
     "pre-commit>=1.14.4",
-    "pytest==4.6.8",
+    "pytest~=6.2",
+    "pytest-order~=1.0",
     "Sphinx==1.7.0",
     "sphinx_rtd_theme==0.2.4",
 ]
@@ -20,7 +20,7 @@ development = [
 if __name__ == "__main__":
     setup(
         name="flask-rebar",
-        version="2.0.2",
+        version="2.1.1",
         author="Barak Alon",
         author_email="barak.s.alon@gmail.com",
         description="Flask-Rebar combines flask, marshmallow, and swagger for robust REST services.",
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         license="MIT",
         packages=find_packages(exclude=("test*", "examples")),
         include_package_data=True,
-        extras_require={"dev": development},
+        extras_require={"dev": development, "enum": ["marshmallow-enum~=1.5"]},
         install_requires=[
             "Flask>=1.0,<3",
             "marshmallow>=3.0,<4",
@@ -47,6 +47,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
             "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
             "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
             "Topic :: Software Development :: Libraries :: Application Frameworks",

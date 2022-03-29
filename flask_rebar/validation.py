@@ -7,7 +7,12 @@
     :copyright: Copyright 2018 PlanGrid, Inc., see AUTHORS.
     :license: MIT, see LICENSE for details.
 """
-from collections import Mapping, namedtuple
+from collections import namedtuple
+
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 
 from marshmallow import Schema
 from marshmallow import ValidationError
@@ -66,7 +71,8 @@ def filter_dump_only(schema, data):
             [item.loadable for item in processed_items],
             [item.dump_only for item in processed_items],
         )
-
+    elif data is None:
+        return FilterResult(loadable=dict(), dump_only=dict())
     else:
         # I am not aware of any case where we should get something other than a Mapping or list, but just in case
         # we can raise a hopefully helpful error if there's some weird Schema that can cause that, so we know
