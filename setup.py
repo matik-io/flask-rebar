@@ -33,7 +33,7 @@ if __name__ == "__main__":
         install_requires=[
             "Flask>=1.0,<3",
             "marshmallow>=3.0,<4",
-            "docstring-parser>=0.7.3<1",
+            "docstring-parser>=0.7.3,<1",
         ],
         url="https://github.com/plangrid/flask-rebar",
         classifiers=[
